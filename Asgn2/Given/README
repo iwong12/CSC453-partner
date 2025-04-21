@@ -19,3 +19,8 @@ include:
 	fp.h:     everything you need to save the floating point state
 	lwp.h:    header for the LWP library
 	snakes.h: header for the snakes library
+	(ian moved some of these and additional headers provided to asgn folder)
+
+src:
+    This has the ASM source for swap.rfiles().
+    (ian moved this to asgn folder)
