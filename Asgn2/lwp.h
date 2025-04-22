@@ -77,6 +77,8 @@ extern scheduler lwp_get_scheduler(void);
 extern thread tid2thread(tid_t tid);
 
 /* scheduler functions */
+extern void rr_init(void);
+extern void rr_shutdown(void);
 extern void rr_admit(thread new);
 extern void rr_remove(thread victim);
 extern thread rr_next(void);
@@ -88,6 +90,12 @@ typedef struct Node {
   struct Node *next;
   struct Node *prev;
 } Node;
+typedef struct Queue {
+  Node *sentinel;
+  int length;
+} Queue;
+
+extern Queue *queue;
 
 /* for lwp_wait */
 #define TERMOFFSET        8
