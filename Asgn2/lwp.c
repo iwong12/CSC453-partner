@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct scheduler rr = {NULL, NULL, rr_admit, rr_remove, rr_next, rr_qlen};
+scheduler RoundRobin = &rr;
+Node *queue;
+
 
 /*
  * Description:
@@ -123,6 +127,37 @@ void lwp_set_scheduler(scheduler sched) {
  */
 scheduler lwp_get_scheduler(void) {
     return NULL;
+}
+
+void rr_admit(thread new) {
+
+}
+
+void rr_remove(thread victim) {
+
+}
+
+thread rr_next(void) {
+
+}
+
+int rr_qlen(void) {
+
+}
+
+/*
+ * Description:
+ *   Calls the given lwpfunction with the given argument,
+ *   then calls lwp_exit() with its return value.
+ * Paramters:
+ *   The lwpfun to be called along with its arguments.
+ * Returns:
+ *   Nothing.
+ */
+static void lwp_wrap(lwpfun fun, void *arg) {
+    int rval;
+    rval = fun(arg);
+    lwp_exit(rval);
 }
 
 int main(void) {

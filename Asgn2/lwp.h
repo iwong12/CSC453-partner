@@ -11,7 +11,7 @@
 
 
 #if defined(__x86_64)
-#include <fp.h>
+#include "fp.h"
 typedef struct __attribute__ ((aligned(16))) __attribute__ ((packed))
 registers {
   unsigned long rax;            /* the sixteen architecturally-visible regs. */
@@ -75,6 +75,19 @@ extern tid_t lwp_wait(int *);
 extern void  lwp_set_scheduler(scheduler fun);
 extern scheduler lwp_get_scheduler(void);
 extern thread tid2thread(tid_t tid);
+
+/* scheduler functions */
+extern void rr_admit(thread new);
+extern void rr_remove(thread victim);
+extern thread rr_next(void);
+extern int rr_qlen(void);
+
+/* queue node */
+typedef struct Node {
+  thread thread;
+  struct Node *next;
+  struct Node *prev;
+} Node;
 
 /* for lwp_wait */
 #define TERMOFFSET        8
