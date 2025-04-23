@@ -74,6 +74,8 @@ tid_t lwp_create(lwpfun function, void *argument) {
         return NO_THREAD;
     }
 
+    new->tid = ++threads;
+
     new->stack = mmap(NULL, stacksize,
                       PROT_READ | PROT_WRITE,
                       MAP_PRIVATE | MAP_ANONYMOUS,
@@ -84,6 +86,13 @@ tid_t lwp_create(lwpfun function, void *argument) {
         return NO_THREAD;
     }
 
+    new->stacksize = stacksize;
+
+    new->state.rdi = (unsigned long)argument;
+    new->state.rbp = (unsigned long)new->stack;
+    new->state.rsp = (unsigned long)new->stack + 1;
+
+    new->status = LWP_LIVE;
 
     return new->tid;
 }
