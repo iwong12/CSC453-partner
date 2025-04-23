@@ -41,7 +41,7 @@ int set_stack_size(void) {
         stacksize = DEFAULT_STACK;
     }
     if (stacksize % pgsize != 0) {
-        stacksize += (pgsize - stacksize % pgsize) % pgsize;
+        stacksize += pgsize - stacksize % pgsize;
     }
     return 0;
 }
