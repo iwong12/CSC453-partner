@@ -84,14 +84,9 @@ extern void rr_remove(thread victim);
 extern thread rr_next(void);
 extern int rr_qlen(void);
 
-/* queue node */
-typedef struct Node {
-  thread thread;
-  struct Node *next;
-  struct Node *prev;
-} Node;
+/* queue struct */
 typedef struct Queue {
-  Node *sentinel;
+  thread sen;
   int length;
 } Queue;
 

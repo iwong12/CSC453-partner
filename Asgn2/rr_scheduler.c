@@ -27,16 +27,16 @@ void rr_init(void) {
         perror("error mallocing queue");
         return;
     }
-    queue->sentinel = malloc(sizeof(Node));
-    if (queue->sentinel == NULL) {
-        perror("error mallocing sentinel");
+    queue->sen = malloc(sizeof(thread));
+    if (queue->sen == NULL) {
+        perror("error mallocing sen");
         free(queue);
         queue = NULL;
         return;
     }
     queue->length = 0;
-    queue->sentinel->next = queue->sentinel;
-    queue->sentinel->prev = queue->sentinel;
+    queue->sen->sched_one = queue->sen;
+    queue->sen->sched_two = queue->sen;
 }
 
 
@@ -53,13 +53,13 @@ void rr_shutdown(void) {
         perror("cannot shutdown uninitialized scheduler");
         return;
     }
-    Node *cur = queue->sentinel->next;
-    while (cur != queue->sentinel) {
-        Node *old = cur;
-        cur = cur->next;
+    thread cur = queue->sen->sched_one;
+    while (cur != queue->sen) {
+        thread old = cur;
+        cur = cur->sched_one;
         free(old);
     }
-    free(queue->sentinel);
+    free(queue->sen);
     free(queue);
     queue = NULL;
 }
@@ -84,16 +84,10 @@ void rr_admit(thread new) {
         perror("error initializing rr scheduler");
         return;
     }
-    Node *new_thread = malloc(sizeof(Node));
-    if (new_thread == NULL) {
-        perror("error mallocing new thread");
-        return;
-    }
-    new_thread->thread = new;
-    new_thread->next = queue->sentinel;
-    new_thread->prev = queue->sentinel->prev;
-    queue->sentinel->prev->next = new_thread;
-    queue->sentinel->prev = new_thread;
+    new->sched_one = queue->sen;
+    new->sched_two = queue->sen->sched_two;
+    queue->sen->sched_two->sched_one = new;
+    queue->sen->sched_two = new;
     queue->length++;
 }
 
@@ -114,13 +108,13 @@ void rr_remove(thread victim) {
         perror("cannot remove NULL thread");
         return;
     }
-    Node *cur = queue->sentinel;
-    while (cur->next != queue->sentinel && cur->thread != victim) {
-        cur = cur->next;
+    thread cur = queue->sen;
+    while (cur->sched_one != queue->sen && cur != victim) {
+        cur = cur->sched_one;
     }
-    if (cur->thread == victim) {
-        cur->prev->next = cur->next;
-        cur->next->prev = cur->prev;
+    if (cur == victim) {
+        cur->sched_two->sched_one = cur->sched_one;
+        cur->sched_one->sched_two = cur->sched_two;
         free(cur);
         queue->length--;
     }
@@ -135,11 +129,11 @@ void rr_remove(thread victim) {
  *   The thread to run next, or NULL if there are no more threads.
  */
 thread rr_next(void) {
-    if (queue == NULL || queue->sentinel->next == queue->sentinel) {
+    if (queue == NULL || queue->sen->sched_one == queue->sen) {
         perror("cannot get next thread from uninitialized/empty scheduler");
         return NULL;
     }
-    return queue->sentinel->next->thread;
+    return queue->sen->sched_one;
 }
 
 /*
@@ -158,13 +152,13 @@ int rr_qlen(void) {
     return queue->length;
 }
 
-int main(void) {
-    thread t1 = malloc(sizeof(thread));
-    RoundRobin->admit(t1);
-    thread next = RoundRobin->next();
-    int ql = RoundRobin->qlen();
-    RoundRobin->remove(next);
-    RoundRobin->admit(t1);
-    RoundRobin->shutdown();
-    free(t1);
-}
+// int main(void) {
+//     thread t1 = malloc(sizeof(thread));
+//     RoundRobin->admit(t1);
+//     thread next = RoundRobin->next();
+//     int ql = RoundRobin->qlen();
+//     RoundRobin->remove(next);
+//     t1 = malloc(sizeof(thread));
+//     RoundRobin->admit(t1);
+//     RoundRobin->shutdown();
+// }
