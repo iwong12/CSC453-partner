@@ -9,12 +9,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/resource.h>
-#include <math.h>
 #include <sys/mman.h>
 
 long stacksize = -1;
 int threads = 0;
 
+
+/*
+ * Description:
+ *   Calls the given lwpfunction with the given argument,
+ *   then calls lwp_exit() with its return value.
+ * Paramters:
+ *   The lwpfun to be called along with its arguments.
+ * Returns:
+ *   Nothing.
+ */
+static void lwp_wrap(lwpfun fun, void *arg) {
+    int rval;
+    rval = fun(arg);
+    lwp_exit(rval);
+}
 
 /*
  * Description:
@@ -44,6 +58,21 @@ int set_stack_size(void) {
         stacksize += pgsize - stacksize % pgsize;
     }
     return 0;
+}
+
+void switch_threads(thread old, thread new) {
+    if (old == NULL || new == NULL) {
+        perror("cannot switch NULL threads");
+        return;
+    }
+    if (old == new) {
+        perror("cannot switch to the same thread");
+        return;
+    }
+    if (old->tid < 1 || new->tid < 1) {
+        perror("cannot switch. invalid tid");
+    }
+
 }
 
 /*
@@ -85,12 +114,13 @@ tid_t lwp_create(lwpfun function, void *argument) {
         free(new);
         return NO_THREAD;
     }
+    new->stack[stacksize - 1] = lwp_wrap;
 
     new->stacksize = stacksize;
 
     new->state.rdi = (unsigned long)argument;
-    new->state.rbp = (unsigned long)new->stack;
-    new->state.rsp = (unsigned long)new->stack + 1;
+    new->state.rsi = (unsigned long)function;
+    new->state.rbp = new->state.rsp = (unsigned long)new->stack + stacksize - 2;
     new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
@@ -103,7 +133,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
 /*
  * Description:
  *   Starts the LWP system. Converts the calling thread into a LWP
- *   and lwp yield()s to whichever thread the scheduler chooses.
+ *   and lwp_yield()s to whichever thread the scheduler chooses.
  * Parameters:
  *   None.
  * Returns:
@@ -124,6 +154,7 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
+
 }
 
 /*
@@ -204,20 +235,6 @@ scheduler lwp_get_scheduler(void) {
     return NULL;
 }
 
-/*
- * Description:
- *   Calls the given lwpfunction with the given argument,
- *   then calls lwp_exit() with its return value.
- * Paramters:
- *   The lwpfun to be called along with its arguments.
- * Returns:
- *   Nothing.
- */
-static void lwp_wrap(lwpfun fun, void *arg) {
-    int rval;
-    rval = fun(arg);
-    lwp_exit(rval);
-}
 
 int main(void) {
     printf("Hello World!\n");
