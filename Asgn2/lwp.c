@@ -2,10 +2,49 @@
 // Created by Ian on 4/21/2025.
 //
 
+#define DEFAULT_STACK 8388608
+
 #include "lwp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/resource.h>
+#include <math.h>
+#include <sys/mman.h>
 
+long stacksize = -1;
+int threads = 0;
+
+
+/*
+ * Description:
+ *   Sets the stack size for LWPs based on system resource limits.
+ * Parameters:
+ *   None.
+ * Returns:
+ *   0 on success, -1 on error.
+ */
+int set_stack_size(void) {
+    long pgsize = sysconf(_SC_PAGESIZE);
+    if (pgsize == -1) {
+        perror("sysconf");
+        return -1;
+    }
+    struct rlimit rlim;
+    if (getrlimit(RLIMIT_STACK, &rlim) == -1) {
+        perror("getrlimit");
+        return -1;
+    }
+    if (rlim.rlim_cur != RLIM_INFINITY) {
+        stacksize = (long)rlim.rlim_cur;
+    } else {
+        stacksize = DEFAULT_STACK;
+    }
+    if (stacksize % pgsize != 0) {
+        stacksize = (long)ceil((double)stacksize / (double)pgsize) * pgsize;
+    }
+    return 0;
+}
 
 /*
  * Description:
@@ -18,7 +57,35 @@
  *   or NO THREAD if the thread cannot be created.
  */
 tid_t lwp_create(lwpfun function, void *argument) {
-    return 0;
+    if  (function == NULL) {
+        perror("cannot create thread with NULL function");
+        return NO_THREAD;
+    }
+    if (stacksize == -1) {
+        if (set_stack_size() == -1) {
+            perror("error setting stack size");
+            return NO_THREAD;
+        }
+    }
+
+    thread new = malloc(sizeof(thread));
+    if (new == NULL) {
+        perror("error mallocing new thread");
+        return NO_THREAD;
+    }
+
+    new->stack = mmap(NULL, stacksize,
+                      PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS,
+                      -1, 0);
+    if (new->stack == MAP_FAILED) {
+        perror("error mmaping new thread stack");
+        free(new);
+        return NO_THREAD;
+    }
+
+
+    return new->tid;
 }
 
 /*
