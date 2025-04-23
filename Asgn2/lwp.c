@@ -114,12 +114,12 @@ tid_t lwp_create(lwpfun function, void *argument) {
         free(new);
         return NO_THREAD;
     }
-    new->stack[stacksize - 1] = lwp_wrap;
+    new->stack[stacksize - 2] = lwp_wrap;
 
     new->stacksize = stacksize;
 
-    new->state.rdi = (unsigned long)argument;
-    new->state.rsi = (unsigned long)function;
+    new->state.rdi = (unsigned long)function;
+    new->state.rsi = (unsigned long)argument;
     new->state.rbp = new->state.rsp = (unsigned long)new->stack + stacksize - 2;
     new->state.fxsave = FPU_INIT;
 
