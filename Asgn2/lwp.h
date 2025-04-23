@@ -90,6 +90,7 @@ typedef struct Queue {
   int length;
 } Queue;
 
+extern scheduler RoundRobin;
 extern Queue *queue;
 
 /* for lwp_wait */

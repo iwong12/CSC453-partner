@@ -41,7 +41,7 @@ int set_stack_size(void) {
         stacksize = DEFAULT_STACK;
     }
     if (stacksize % pgsize != 0) {
-        stacksize = (long)ceil((double)stacksize / (double)pgsize) * pgsize;
+        stacksize += (pgsize - stacksize % pgsize) % pgsize;
     }
     return 0;
 }
@@ -68,7 +68,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
         }
     }
 
-    thread new = malloc(sizeof(thread));
+    thread new = malloc(sizeof(context));
     if (new == NULL) {
         perror("error mallocing new thread");
         return NO_THREAD;
@@ -91,8 +91,11 @@ tid_t lwp_create(lwpfun function, void *argument) {
     new->state.rdi = (unsigned long)argument;
     new->state.rbp = (unsigned long)new->stack;
     new->state.rsp = (unsigned long)new->stack + 1;
+    new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
+
+    RoundRobin->admit(new);
 
     return new->tid;
 }
