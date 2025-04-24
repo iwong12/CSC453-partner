@@ -191,7 +191,7 @@ void lwp_yield(void) {
 
     thread later = sched -> next();
 
-    if (later == NULL){
+    if (later == NULL) {
         exit(1);
     }
     /* if next val does not exist, exit */

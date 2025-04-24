@@ -78,6 +78,7 @@ extern thread tid2thread(tid_t tid);
 
 /* scheduler functions */
 extern void rr_init(void);
+extern void _rr_shutdown(void);
 extern void rr_shutdown(void);
 extern void rr_admit(thread new);
 extern void rr_remove(thread victim);

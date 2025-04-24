@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct scheduler rr = {rr_init, rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
+struct scheduler rr = {rr_init, _rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
 scheduler sched = &rr;
 Queue ready_help = {NULL, 0};
 Queue *ready = &ready_help;
@@ -29,6 +29,18 @@ void rr_init(void) {
 
 /*
  * Description:
+ *   Shuts down the global round-robin scheduler.
+ * Parameters:
+ *   None.
+ * Returns:
+ *   Nothing.
+ */
+void _rr_shutdown(void) {
+    shutdown(ready, 1);
+}
+
+/*
+ * Description:
  *   Shuts down the round-robin scheduler.
  * Parameters:
  *   None.
@@ -36,7 +48,7 @@ void rr_init(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    shutdown(ready, 1);
+    shutdown(ready, 0);
 }
 
 /*
