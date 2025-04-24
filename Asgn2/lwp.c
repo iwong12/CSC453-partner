@@ -283,7 +283,7 @@ tid_t lwp_wait(int *status) {
     dequeue(all, delete, TRUE);
 
     if (delete -> stack != NULL){
-        free(delete -> stack);
+        munmap(delete -> stack, stacksize);
     }
     /* if main thread stack, do not deallocate */
 
