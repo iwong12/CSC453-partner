@@ -130,14 +130,3 @@ int rr_qlen(void) {
     }
     return ready->length;
 }
-
-// int main(void) {
-//     thread t1 = malloc(sizeof(thread));
-//     sched->admit(t1);
-//     thread next = sched->next();
-//     int ql = sched->qlen();
-//     sched->remove(next);
-//     t1 = malloc(sizeof(thread));
-//     sched->admit(t1);
-//     sched->shutdown();
-// }

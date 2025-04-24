@@ -127,8 +127,10 @@ tid_t lwp_create(lwpfun function, void *argument) {
     unsigned long offset = ((unsigned long)(((char *)new->stack)
                             + stacksize - 1)) % BOUND;
     new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
-    /* going to the spot in bytes (with stacksize and offset).
-        then it divides by the size of a long, then -2 for correct stack spot */
+    /*  going to the spot in bytes (with stacksize and offset).
+        then it divides by the size of a long, then -2 for correct
+        stack spot
+    */
 
     new->stacksize = stacksize;
 
@@ -379,4 +381,9 @@ void lwp_set_scheduler(scheduler new) {
  */
 scheduler lwp_get_scheduler(void) {
     return sched;
+}
+
+
+int main(void) {
+    lwp_create((lwpfun)1, NULL);
 }
