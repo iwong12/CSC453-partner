@@ -384,8 +384,8 @@ scheduler lwp_get_scheduler(void) {
 }
 
 int test1(void * arg) {
-    printf("hi!");
-    exit(1);
+    printf("hello!\n");
+    return 0;
 }
 
 int main(void) {
