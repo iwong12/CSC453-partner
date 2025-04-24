@@ -16,14 +16,14 @@
  * Returns:
  *   Nothing.
  */
-void startup(Queue *q) {
+void startup(Queue *q, int lib) {
     q->sen = malloc(sizeof(thread));
     if (q->sen == NULL) {
         perror("error mallocing sen");
         return;
     }
     q->sen->tid = NO_THREAD;
-    if (q == all) {
+    if (lib == 1) {
         q->sen->lib_one = q->sen;
         q->sen->lib_two = q->sen;
         q->length = 0;
@@ -42,8 +42,8 @@ void startup(Queue *q) {
  * Returns:
  *   Nothing.
  */
-void enqueue(Queue *q, thread t) {
-    if (q == all) {
+void enqueue(Queue *q, thread t, int lib) {
+    if (lib == 1) {
         t->lib_one = q->sen;
         t->lib_two = q->sen->lib_two;
         q->sen->lib_two->lib_one = t;
@@ -65,9 +65,9 @@ void enqueue(Queue *q, thread t) {
  * Returns:
  *   Nothing.
  */
-void dequeue(Queue *q, thread t) {
+void dequeue(Queue *q, thread t, int lib) {
     thread cur = q->sen;
-    if (q == all) {
+    if (lib == 1) {
         while (cur->lib_one != q->sen && cur != t) {
             cur = cur->lib_one;
         }

@@ -24,7 +24,7 @@ Queue *ready = &ready_help;
  *   Nothing.
  */
 void rr_init(void) {
-    startup(ready);
+    startup(ready, 0);
 }
 
 
@@ -72,7 +72,7 @@ void rr_admit(thread new) {
         perror("error initializing rr scheduler");
         return;
     }
-    enqueue(ready, new);
+    enqueue(ready, new, 0);
 }
 
 /*
@@ -92,7 +92,7 @@ void rr_remove(thread victim) {
         perror("cannot remove NULL thread");
         return;
     }
-    dequeue(ready, victim);
+    dequeue(ready, victim, 0);
 }
 
 /*

@@ -13,11 +13,11 @@ lwp.o: lwp.c
 	$(CC) $(CFLAGS) -c lwp.c -o lwp.o
 
 magic64.o: magic64.S
-	$(CC) $(CFLAGS) -o magic64.o -c magic64.S
+	$(CC) $(CFLAGS) -c magic64.S -o magic64.o
 
 liblwp.so: lwp.o rr.o queue.o magic64.o
 	$(CC) $(CFLAGS) -shared -fPIC -o liblwp.so lwp.o rr.o queue.o magic64.o
 
 clean:
-	rm -f *.o *.so *.a -r lib*
+	rm -f *.o *.so -r
 

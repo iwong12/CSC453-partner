@@ -92,13 +92,12 @@ typedef struct Queue {
 } Queue;
 
 /* queue functions */
-extern void startup(Queue *q);
+extern void startup(Queue *q, int lib);
 extern void shutdown(Queue *q, int def);
-extern void enqueue(Queue *q, thread t);
-extern void dequeue(Queue *q, thread t);
+extern void enqueue(Queue *q, thread t, int lib);
+extern void dequeue(Queue *q, thread t, int lib);
 
 extern scheduler sched;
-extern Queue *all;
 
 /* for lwp_wait */
 #define TERMOFFSET        8
