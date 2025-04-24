@@ -126,10 +126,8 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     unsigned long offset = ((unsigned long)(((char *)new->stack)
                             + stacksize)) % BOUND;
-    offset = offset == 0 ? BOUND : offset;
-    *((char *)new->stack + stacksize - offset - BYTES * 2)
+    *(unsigned long *)((char *)new->stack + stacksize - offset - BYTES * 1)
         = (unsigned long)lwp_wrap;
-    // new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
     /*  going to the spot in bytes (with stacksize and offset).
         then it divides by the size of a long, then -2 for correct
         stack spot
@@ -140,7 +138,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
     new->state.rdi = (unsigned long)function;
     new->state.rsi = (unsigned long)argument;
     new->state.rbp = (unsigned long)((char *)new->stack +
-                      stacksize - offset - BYTES * 3);
+                      stacksize - offset - BYTES * 2);
     /* set correct spot in stack for swap_rfiles to read properly */
 
     struct fxsave test;
