@@ -108,8 +108,7 @@ thread rr_next(void) {
         rr_init();
         return NULL;
     }
-    if (rr_qlen() < 2) {
-        perror("no next thread");
+    if (rr_qlen() < 1) {
         return NULL;
     }
     return ready->sen->sched_one;

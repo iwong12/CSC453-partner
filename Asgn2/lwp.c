@@ -179,6 +179,7 @@ void lwp_start(void) {
         return;
     }
     /* creates new context to save for current thread */
+    running = new;
     new->tid = ++threads;
     new->stack = NULL;
     new->status = LWP_LIVE;
@@ -321,10 +322,11 @@ thread tid2thread(tid_t tid) {
         if (current == (all -> sen)){
             current = NULL;
             test = TRUE;
-            current = current -> lib_one;
         }
         else if ((current -> tid) == tid){
             test = TRUE;
+        } else {
+            current = current -> lib_one;
         }
     }
     /* iterates through all till is done or finds */
@@ -380,9 +382,13 @@ scheduler lwp_get_scheduler(void) {
     return sched;
 }
 
+int test1(void * arg) {
+    printf("hi!");
+    return 0;
+}
 
 int main(void) {
-    // lwp_create((lwpfun)1, NULL);
+    // lwp_create(test1, NULL);
     lwp_start();
     return 0;
 }
