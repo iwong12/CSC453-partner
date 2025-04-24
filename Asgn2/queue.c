@@ -96,7 +96,11 @@ void dequeue(Queue *q, thread t) {
  * Returns:
  *   Nothing.
  */
-void shutdown(Queue *q) {
+void shutdown(Queue *q, int def = 0) {
     free(q->sen);
-    q->length = 0;
+    if (def == 1) {
+        q->length = 0;
+    } else {
+        free(q);
+    }
 }
