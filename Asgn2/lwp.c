@@ -3,6 +3,8 @@
 //
 
 #define DEFAULT_STACK 8388608
+#define BOUND 16
+#define BYTES 8
 
 #include "lwp.h"
 #include <stdio.h>
@@ -25,8 +27,7 @@ int threads = 0;
  *   Nothing.
  */
 static void lwp_wrap(lwpfun fun, void *arg) {
-    int rval;
-    rval = fun(arg);
+    int rval = fun(arg);
     lwp_exit(rval);
 }
 
@@ -73,7 +74,9 @@ void switch_threads(thread old, thread new) {
         perror("cannot switch. invalid tid");
     }
 
+    swap_rfiles(&old->state, &new->state);
 }
+
 
 /*
  * Description:
@@ -114,13 +117,14 @@ tid_t lwp_create(lwpfun function, void *argument) {
         free(new);
         return NO_THREAD;
     }
-    new->stack[stacksize - 2] = lwp_wrap;
+    unsigned long offset = (uint)((char *)new->stack + stacksize - 1) % BOUND;
+    new->stack[(stacksize - offset) / BYTES - 2] = lwp_wrap;
 
     new->stacksize = stacksize;
 
     new->state.rdi = (unsigned long)function;
     new->state.rsi = (unsigned long)argument;
-    new->state.rbp = new->state.rsp = (unsigned long)new->stack + stacksize - 2;
+    new->state.rbp = (unsigned long)new->stack + (stacksize - offset) / BYTES - 3;
     new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
@@ -154,7 +158,12 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
+    thread next = RoundRobin->next();
+    if (next == NULL) {
+        exit(0);  // is this right?
+    }
 
+    swap_rfiles()
 }
 
 /*
