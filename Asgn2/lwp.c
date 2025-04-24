@@ -128,7 +128,8 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     new->state.rdi = (unsigned long)function;
     new->state.rsi = (unsigned long)argument;
-    new->state.rbp = (unsigned long)new->stack + (stacksize - offset) / BYTES - 3;
+    new->state.rbp = (unsigned long)new->stack +
+                     (stacksize - offset) / BYTES - 3;
     new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
