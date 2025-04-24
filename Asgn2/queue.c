@@ -23,7 +23,7 @@ void startup(Queue *q, int lib) {
         return;
     }
     q->sen->tid = NO_THREAD;
-    if (lib == 1) {
+    if (lib == TRUE) {
         q->sen->lib_one = q->sen;
         q->sen->lib_two = q->sen;
         q->length = 0;
@@ -43,7 +43,7 @@ void startup(Queue *q, int lib) {
  *   Nothing.
  */
 void enqueue(Queue *q, thread t, int lib) {
-    if (lib == 1) {
+    if (lib == TRUE) {
         t->lib_one = q->sen;
         t->lib_two = q->sen->lib_two;
         q->sen->lib_two->lib_one = t;
@@ -67,7 +67,7 @@ void enqueue(Queue *q, thread t, int lib) {
  */
 void dequeue(Queue *q, thread t, int lib) {
     thread cur = q->sen;
-    if (lib == 1) {
+    if (lib == TRUE) {
         while (cur->lib_one != q->sen && cur != t) {
             cur = cur->lib_one;
         }
@@ -98,7 +98,7 @@ void dequeue(Queue *q, thread t, int lib) {
  */
 void shutdown(Queue *q, int def) {
     free(q->sen);
-    if (def == 1) {
+    if (def == TRUE) {
         q->length = 0;
     } else {
         free(q);

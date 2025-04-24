@@ -37,7 +37,7 @@ void rr_init(void) {
  *   Nothing.
  */
 void _rr_shutdown(void) {
-    shutdown(ready, 1);
+    shutdown(ready, TRUE);
 }
 
 /*
@@ -49,7 +49,7 @@ void _rr_shutdown(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    shutdown(ready, 0);
+    shutdown(ready, FALSE);
 }
 
 /*
@@ -72,7 +72,7 @@ void rr_admit(thread new) {
         perror("error initializing rr scheduler");
         return;
     }
-    enqueue(ready, new, 0);
+    enqueue(ready, new, FALSE);
 }
 
 /*
@@ -92,7 +92,7 @@ void rr_remove(thread victim) {
         perror("cannot remove NULL thread");
         return;
     }
-    dequeue(ready, victim, 0);
+    dequeue(ready, victim, FALSE);
 }
 
 /*

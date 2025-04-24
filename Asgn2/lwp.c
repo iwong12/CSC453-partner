@@ -94,13 +94,13 @@ tid_t lwp_create(lwpfun function, void *argument) {
     /* check params */
 
     if (all->sen == NULL) {
-        startup(all, 1);
+        startup(all, TRUE);
     }
     if (zombie->sen == NULL) {
-        startup(zombie, 0);
+        startup(zombie, FALSE);
     }
     if (blocked->sen == NULL) {
-        startup(blocked, 0);
+        startup(blocked, FALSE);
     }
     /* create queues if existing */
 
@@ -145,7 +145,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     new->status = LWP_LIVE;
 
-    enqueue(all, new, 1);
+    enqueue(all, new, TRUE);
     sched->admit(new);
     /* add to all and scheduler queue */
 
@@ -163,13 +163,13 @@ tid_t lwp_create(lwpfun function, void *argument) {
  */
 void lwp_start(void) {
     if (all->sen == NULL) {
-        startup(all, 1);
+        startup(all, TRUE);
     }
     if (zombie->sen == NULL) {
-        startup(zombie, 0);
+        startup(zombie, FALSE);
     }
     if (blocked->sen == NULL) {
-        startup(blocked, 0);
+        startup(blocked, FALSE);
     }
     /* these create new queues for all, zombies, and blocked */
 
@@ -183,7 +183,7 @@ void lwp_start(void) {
     new->stack = NULL;
     new->status = LWP_LIVE;
 
-    enqueue(all, new, 1);
+    enqueue(all, new, TRUE);
     sched->admit(new);
     /* add main thread to all and scheduler */
     lwp_yield();
@@ -235,13 +235,13 @@ void lwp_exit(int exitval) {
     running = sched->next()->sched_two->sched_two;
     sched->remove(running);
     /* get current thread and remove from scheduler */
-    enqueue(zombie, running, 0);
+    enqueue(zombie, running, FALSE);
     running->status = MKTERMSTAT(LWP_TERM, exitval);
     /* set status and put into zombie list to be deallocted */
 
     if (blocked -> length > 0){
         thread revived = blocked -> sen -> sched_one;
-        dequeue(blocked, revived, 0);
+        dequeue(blocked, revived, FALSE);
         sched -> admit(revived);
         /* put thread in waited list back into scheduler */
         revived -> exited = running;
@@ -265,7 +265,7 @@ tid_t lwp_wait(int *status) {
     /* take current thread off scheduler, add to blocked queue */
 
     if (zombie -> length < 1){
-        enqueue(blocked, running, 0);
+        enqueue(blocked, running, FALSE);
         sched -> remove(running);
         if (sched -> qlen() < 1){
             return NO_THREAD;
@@ -279,7 +279,7 @@ tid_t lwp_wait(int *status) {
     *status = delete -> status;
     tid_t final = delete -> tid;
     /* find the oldest to delete and get the id */
-    dequeue(zombie, delete, 0);
+    dequeue(zombie, delete, FALSE);
 
     if (delete -> stack != NULL){
         free(delete -> stack);
@@ -318,16 +318,16 @@ tid_t lwp_gettid(void) {
  *   if the ID is invalid.
  */
 thread tid2thread(tid_t tid) {
-    int test = 0;
+    int test = FALSE;
 
     thread current = all -> sen -> lib_one;
-    while (test == 0){
+    while (test == FALSE){
         if (current == (all -> sen)){
             current = NULL;
-            test = 1;
+            test = TRUE;
         }
         else if ((current -> tid) == tid){
-            test = 1;
+            test = TRUE;
         }
         current = current -> lib_one;
     }
@@ -386,5 +386,7 @@ scheduler lwp_get_scheduler(void) {
 
 
 int main(void) {
-    lwp_create((lwpfun)1, NULL);
+    // lwp_create((lwpfun)1, NULL);
+    lwp_start();
+    return 0;
 }
