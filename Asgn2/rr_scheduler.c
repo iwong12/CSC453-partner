@@ -11,6 +11,9 @@
 struct scheduler rr = {rr_init, rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
 scheduler RoundRobin = &rr;
 Queue *ready;
+Queue *zombie;
+Queue *waiting;
+Queue *all;
 
 
 /*

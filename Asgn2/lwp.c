@@ -79,7 +79,6 @@ void switch_threads(thread old, thread new) {
     swap_rfiles(&old->state, &new->state);
 }
 
-
 /*
  * Description:
  *   Creates a new lightweight process which executes the given function
@@ -168,12 +167,15 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
-    thread next = RoundRobin->next();
-    if (next == NULL) {
-        exit(0);  // is this right?
-    }
+    tid_t present = lwp_gettid();
 
-    swap_rfiles()
+
+
+    thread later = RoundRobin->next();
+
+    if (later == NULL){
+
+    }
 }
 
 /*
@@ -212,7 +214,8 @@ tid_t lwp_wait(int *status) {
  *   by a LWP.
  */
 tid_t lwp_gettid(void) {
-    return 0;
+    return queue -> sen -> sched_two -> tid;
+    /* the element at back of queue is running process */
 }
 
 /*
@@ -225,7 +228,22 @@ tid_t lwp_gettid(void) {
  *   if the ID is invalid.
  */
 thread tid2thread(tid_t tid) {
-    return NULL;
+    int test = 0;
+
+    thread current = all -> sen -> lib_one;
+    while (test == 0){
+        if (current == (all -> sen)){
+            current = NULL;
+            test = 1;
+        }
+        else if ((current -> tid) == tid){
+            test = 1;
+        }
+        current = current -> lib_one;
+    }
+    /* iterates through all till is done or finds */
+
+    return current;
 }
 
 /*
