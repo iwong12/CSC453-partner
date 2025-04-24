@@ -91,6 +91,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
             return NO_THREAD;
         }
     }
+    /* check params */
 
     if (all->sen == NULL) {
         startup(all);
@@ -101,6 +102,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
     if (blocked->sen == NULL) {
         startup(blocked);
     }
+    /* create queues if existing */
 
 
     thread new = malloc(sizeof(context));
@@ -120,9 +122,13 @@ tid_t lwp_create(lwpfun function, void *argument) {
         free(new);
         return NO_THREAD;
     }
-    unsigned long offset = (unsigned long)((char *)new->stack
-                            + stacksize - 1) % BOUND;
+    /* create new thread var and new stack for it */
+
+    unsigned long offset = ((unsigned long)(((char *)new->stack)
+                            + stacksize - 1)) % BOUND;
     new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
+    /* going to the spot in bytes (with stacksize and offset).
+        then it divides by the size of a long, then -2 for correct stack spot */
 
     new->stacksize = stacksize;
 
@@ -130,12 +136,15 @@ tid_t lwp_create(lwpfun function, void *argument) {
     new->state.rsi = (unsigned long)argument;
     new->state.rbp = (unsigned long)new->stack +
                      (stacksize - offset) / BYTES - 3;
+    /* set correct spot in stack for swap_rfiles to read properly */
+    
     new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
 
     enqueue(all, new);
     sched->admit(new);
+    /* add to all and scheduler queue */
 
     return new->tid;
 }
@@ -159,19 +168,23 @@ void lwp_start(void) {
     if (blocked->sen == NULL) {
         startup(blocked);
     }
+    /* these create new queues for all, zombies, and blocked */
 
     thread new = malloc(sizeof(context));
     if (new == NULL) {
         perror("error mallocing new thread");
         return;
     }
+    /* creates new context to save for current thread */
     new->tid = ++threads;
     new->stack = NULL;
     new->status = LWP_LIVE;
 
     enqueue(all, new);
     sched->admit(new);
+    /* add main thread to all and scheduler */
     lwp_yield();
+    /* yield handles the rest */
 }
 
 /*
