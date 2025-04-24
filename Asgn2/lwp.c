@@ -226,7 +226,9 @@ void lwp_exit(int exitval) {
         thread revived = blocked -> sen -> sched_one;
         dequeue(blocked, revived);
         sched -> admit(revived);
-        /* put thread in waited list into scheduler */
+        /* put thread in waited list back into scheduler */
+        revived -> exited = running;
+        /* set exited of the waited thread to exited thread */
     }
 
     lwp_yield();
@@ -243,30 +245,32 @@ void lwp_exit(int exitval) {
  */
 tid_t lwp_wait(int *status) {
     running = sched->next()->sched_two->sched_two;
-    sched->remove(running);
-    enqueue(blocked, running);
     /* take current thread off scheduler, add to blocked queue */
 
-    if (sched -> qlen() < 1){
-        return NO_THREAD;
-    }
-    /* if there are no more threads, just ret */
-
     if (zombie -> length < 1){
+        enqueue(blocked, running);
+        sched -> remove(running);
+        if (sched -> qlen() < 1){
+            return NO_THREAD;
+        }
+        /* if there are no more threads, just ret */
         lwp_yield();
     }
     /* wait for zombie to show up */
 
     thread delete = zombie -> sen -> sched_one;
     tid_t final = delete -> tid;
+    /* find the oldest to delete and get the id */
     dequeue(zombie, delete);
 
     if (delete -> stack != NULL){
         free(delete -> stack);
     }
+    /* if main thread stack, do not deallocate */
 
     free(delete);
     return final;
+    /* unqueue it and free it all */
 }
 
 /*
