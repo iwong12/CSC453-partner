@@ -125,8 +125,11 @@ tid_t lwp_create(lwpfun function, void *argument) {
     /* create new thread var and new stack for it */
 
     unsigned long offset = ((unsigned long)(((char *)new->stack)
-                            + stacksize - 1)) % BOUND;
-    new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
+                            + stacksize)) % BOUND;
+    offset = offset == 0 ? BOUND : offset;
+    *((char *)new->stack + stacksize - offset - BYTES * 2)
+        = (unsigned long)lwp_wrap;
+    // new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
     /*  going to the spot in bytes (with stacksize and offset).
         then it divides by the size of a long, then -2 for correct
         stack spot
@@ -136,8 +139,8 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     new->state.rdi = (unsigned long)function;
     new->state.rsi = (unsigned long)argument;
-    new->state.rbp = (unsigned long)new->stack +
-                     (stacksize - offset) / BYTES - 3;
+    new->state.rbp = (unsigned long)((char *)new->stack +
+                      stacksize - offset - BYTES * 3);
     /* set correct spot in stack for swap_rfiles to read properly */
 
     struct fxsave test;
@@ -384,11 +387,11 @@ scheduler lwp_get_scheduler(void) {
 
 int test1(void * arg) {
     printf("hi!");
-    return 0;
+    exit(1);
 }
 
 int main(void) {
-    // lwp_create(test1, NULL);
+    lwp_create(test1, NULL);
     lwp_start();
     return 0;
 }
