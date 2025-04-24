@@ -17,6 +17,7 @@
 
 long stacksize = -1;
 int threads = 0;
+thread running = NULL;
 Queue global = {NULL, 0};
 Queue dead = {NULL, 0};
 Queue wait = {NULL, 0};
@@ -132,6 +133,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     new->status = LWP_LIVE;
 
+    enqueue(all, new);
     sched->admit(new);
 
     return new->tid;
@@ -147,6 +149,16 @@ tid_t lwp_create(lwpfun function, void *argument) {
  *   Nothing.
  */
 void lwp_start(void) {
+    if (all->sen == NULL) {
+        startup(all);
+    }
+    if (zombie->sen == NULL) {
+        startup(zombie);
+    }
+    if (blocked->sen == NULL) {
+        startup(blocked);
+    }
+
     thread new = malloc(sizeof(context));
     if (new == NULL) {
         perror("error mallocing new thread");
@@ -155,6 +167,10 @@ void lwp_start(void) {
     new->tid = ++threads;
     new->stack = NULL;
     new->status = LWP_LIVE;
+
+    enqueue(all, new);
+    sched->admit(new);
+    lwp_yield();
 }
 
 /*
