@@ -388,20 +388,20 @@ scheduler lwp_get_scheduler(void) {
 
 int test1(void *arg) {
     printf("%d: hello!\n", *(int *)arg);
-    return 0;
+    lwp_yield();
+    lwp_exit(0);
 }
 
 int main(void) {
-    int num[5] = {0, 1, 2, 3, 4};
-    for (int i = 0; i < 5; i++) {
+    int i, num[5] = {0, 1, 2, 3, 4};
+    for (i = 0; i < 5; i++) {
         lwp_create(test1, num + i);
     }
     lwp_start();
-    for (int i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++) {
         int status;
         lwp_wait(&status);
         printf("%d\n", status);
     }
-    free(num);
     return 0;
 }
