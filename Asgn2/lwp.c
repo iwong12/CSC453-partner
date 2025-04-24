@@ -283,7 +283,10 @@ tid_t lwp_wait(int *status) {
     dequeue(all, delete, TRUE);
 
     if (delete -> stack != NULL){
-        munmap(delete -> stack, stacksize);
+        if (munmap(delete->stack, delete->stacksize) == -1) {
+            perror("error munmap");
+            return NO_THREAD;
+        };
     }
     /* if main thread stack, do not deallocate */
 
@@ -383,13 +386,22 @@ scheduler lwp_get_scheduler(void) {
     return sched;
 }
 
-int test1(void * arg) {
-    printf("hello!\n");
+int test1(void *arg) {
+    printf("%d: hello!\n", *(int *)arg);
     return 0;
 }
 
 int main(void) {
-    lwp_create(test1, NULL);
+    int num[5] = {0, 1, 2, 3, 4};
+    for (int i = 0; i < 5; i++) {
+        lwp_create(test1, num + i);
+    }
     lwp_start();
+    for (int i = 0; i < 5; i++) {
+        int status;
+        lwp_wait(&status);
+        printf("%d\n", status);
+    }
+    free(num);
     return 0;
 }
