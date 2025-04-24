@@ -141,8 +141,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
                       stacksize - offset - BYTES * 3);
     /* set correct spot in stack for swap_rfiles to read properly */
 
-    struct fxsave test;
-    new->state.fxsave = test;
+    new->state.fxsave = FPU_INIT;
 
     new->status = LWP_LIVE;
 
@@ -390,6 +389,7 @@ int test1(void *arg) {
     printf("%d: hello!\n", *(int *)arg);
     lwp_yield();
     lwp_exit(0);
+    return 0;
 }
 
 int main(void) {
