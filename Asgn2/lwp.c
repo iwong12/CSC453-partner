@@ -185,21 +185,23 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
-    thread later = sched->next();
+    thread current = tid2thread(lwp_gettid());
+    running = NULL;
+    /* find current and reset running */
+
+    thread later = sched -> next();
 
     if (later == NULL){
         exit(1);
     }
+    /* if next val does not exist, exit */
 
-    
-    
-    thread current = tid2thread(lwp_gettid());
+    sched -> remove(later);
+    sched -> admit(later);
+    /* put it to the back of the queue */
 
-    if (current == NULL){
-        perror("could not yield current thread");
-
-
-    }
+    swap_rfiles(&(current -> state), &(later -> state));
+    /* change state */
 }
 
 /*
@@ -215,8 +217,18 @@ void lwp_yield(void) {
 void lwp_exit(int exitval) {
     running = sched->next()->sched_two->sched_two;
     sched->remove(running);
+    /* get current thread and remove from scheduler */
     enqueue(zombie, running);
     running->status = MKTERMSTAT(LWP_TERM, exitval);
+    /* set status and put into zombie list to be deallocted */
+
+    if (blocked -> length > 0){
+        thread revived = blocked -> sen -> sched_one;
+        dequeue(blocked, revived);
+        sched -> admit(revived);
+        /* put thread in waited list into scheduler */
+    }
+
     lwp_yield();
 }
 
@@ -230,7 +242,31 @@ void lwp_exit(int exitval) {
  *   The tid of the terminated thread or NO_THREAD.
  */
 tid_t lwp_wait(int *status) {
-    return 0;
+    running = sched->next()->sched_two->sched_two;
+    sched->remove(running);
+    enqueue(blocked, running);
+    /* take current thread off scheduler, add to blocked queue */
+
+    if (sched -> qlen() < 1){
+        return NO_THREAD;
+    }
+    /* if there are no more threads, just ret */
+
+    if (zombie -> length < 1){
+        lwp_yield();
+    }
+    /* wait for zombie to show up */
+
+    thread delete = zombie -> sen -> sched_one;
+    tid_t final = delete -> tid;
+    dequeue(zombie, delete);
+
+    if (delete -> stack != NULL){
+        free(delete -> stack);
+    }
+
+    free(delete);
+    return final;
 }
 
 /*
