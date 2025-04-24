@@ -1,6 +1,8 @@
-//
-// Created by Ian on 4/21/2025.
-//
+/*
+ * Description: Library for lightweight process management.
+ * Authors: iwong12, ckira
+ * Date: 2025-04-22
+ */
 
 #define DEFAULT_STACK 8388608
 #define BOUND 16
@@ -144,6 +146,14 @@ tid_t lwp_create(lwpfun function, void *argument) {
  *   Nothing.
  */
 void lwp_start(void) {
+    thread new = malloc(sizeof(context));
+    if (new == NULL) {
+        perror("error mallocing new thread");
+        return;
+    }
+    new->tid = ++threads;
+    new->stack = NULL;
+    new->status = LWP_LIVE;
 }
 
 /*

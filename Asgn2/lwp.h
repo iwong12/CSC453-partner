@@ -91,7 +91,7 @@ typedef struct Queue {
 } Queue;
 
 extern scheduler RoundRobin;
-extern Queue *queue;
+extern Queue *ready;
 
 /* for lwp_wait */
 #define TERMOFFSET        8

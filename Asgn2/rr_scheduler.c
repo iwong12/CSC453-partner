@@ -1,7 +1,7 @@
 /*
  * Description: This file contains the round-robin scheduler library.
  * Author: iwong12
- * Date: 2025-04-10
+ * Date: 2025-04-22
  */
 
 #include "lwp.h"
@@ -10,7 +10,7 @@
 
 struct scheduler rr = {rr_init, rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
 scheduler RoundRobin = &rr;
-Queue *queue;
+Queue *ready;
 
 
 /*
@@ -22,21 +22,21 @@ Queue *queue;
  *   Nothing.
  */
 void rr_init(void) {
-    queue = malloc(sizeof(Queue));
-    if (queue == NULL) {
+    ready = malloc(sizeof(Queue));
+    if (ready == NULL) {
         perror("error mallocing queue");
         return;
     }
-    queue->sen = malloc(sizeof(thread));
-    if (queue->sen == NULL) {
+    ready->sen = malloc(sizeof(thread));
+    if (ready->sen == NULL) {
         perror("error mallocing sen");
-        free(queue);
-        queue = NULL;
+        free(ready);
+        ready = NULL;
         return;
     }
-    queue->length = 0;
-    queue->sen->sched_one = queue->sen;
-    queue->sen->sched_two = queue->sen;
+    ready->length = 0;
+    ready->sen->sched_one = ready->sen;
+    ready->sen->sched_two = ready->sen;
 }
 
 
@@ -49,19 +49,19 @@ void rr_init(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    if (queue == NULL) {
+    if (ready == NULL) {
         perror("cannot shutdown uninitialized scheduler");
         return;
     }
-    thread cur = queue->sen->sched_one;
-    while (cur != queue->sen) {
+    thread cur = ready->sen->sched_one;
+    while (cur != ready->sen) {
         thread old = cur;
         cur = cur->sched_one;
         free(old);
     }
-    free(queue->sen);
-    free(queue);
-    queue = NULL;
+    free(ready->sen);
+    free(ready);
+    ready = NULL;
 }
 
 /*
@@ -77,18 +77,18 @@ void rr_admit(thread new) {
         perror("cannot add NULL thread");
         return;
     }
-    if (queue == NULL) {
+    if (ready == NULL) {
         rr_init();
     }
-    if (queue == NULL) {  // second check after rr_init() to see if fail
+    if (ready == NULL) {  // second check after rr_init() to see if fail
         perror("error initializing rr scheduler");
         return;
     }
-    new->sched_one = queue->sen;
-    new->sched_two = queue->sen->sched_two;
-    queue->sen->sched_two->sched_one = new;
-    queue->sen->sched_two = new;
-    queue->length++;
+    new->sched_one = ready->sen;
+    new->sched_two = ready->sen->sched_two;
+    ready->sen->sched_two->sched_one = new;
+    ready->sen->sched_two = new;
+    ready->length++;
 }
 
 /*
@@ -100,7 +100,7 @@ void rr_admit(thread new) {
  *   Nothing.
  */
 void rr_remove(thread victim) {
-    if (queue == NULL) {
+    if (ready == NULL) {
         perror("cannot remove from uninitialized scheduler");
         return;
     }
@@ -108,15 +108,15 @@ void rr_remove(thread victim) {
         perror("cannot remove NULL thread");
         return;
     }
-    thread cur = queue->sen;
-    while (cur->sched_one != queue->sen && cur != victim) {
+    thread cur = ready->sen;
+    while (cur->sched_one != ready->sen && cur != victim) {
         cur = cur->sched_one;
     }
     if (cur == victim) {
         cur->sched_two->sched_one = cur->sched_one;
         cur->sched_one->sched_two = cur->sched_two;
         free(cur);
-        queue->length--;
+        ready->length--;
     }
 }
 
@@ -129,11 +129,11 @@ void rr_remove(thread victim) {
  *   The thread to run next, or NULL if there are no more threads.
  */
 thread rr_next(void) {
-    if (queue == NULL || queue->sen->sched_one == queue->sen) {
+    if (ready == NULL || ready->sen->sched_one == ready->sen) {
         perror("cannot get next thread from uninitialized/empty scheduler");
         return NULL;
     }
-    return queue->sen->sched_one;
+    return ready->sen->sched_one;
 }
 
 /*
@@ -145,11 +145,11 @@ thread rr_next(void) {
  *   The number of runnable threads.
  */
 int rr_qlen(void) {
-    if (queue == NULL) {
+    if (ready == NULL) {
         perror("cannot get length of uninitialized scheduler");
         return -1;
     }
-    return queue->length;
+    return ready->length;
 }
 
 // int main(void) {
