@@ -9,11 +9,9 @@
 #include <stdlib.h>
 
 struct scheduler rr = {rr_init, rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
-scheduler RoundRobin = &rr;
-Queue *ready;
-Queue *zombie;
-Queue *waiting;
-Queue *all;
+scheduler sched = &rr;
+Queue ready_help = {NULL, 0};
+Queue *ready = &ready_help;
 
 
 /*
@@ -25,21 +23,7 @@ Queue *all;
  *   Nothing.
  */
 void rr_init(void) {
-    ready = malloc(sizeof(Queue));
-    if (ready == NULL) {
-        perror("error mallocing queue");
-        return;
-    }
-    ready->sen = malloc(sizeof(thread));
-    if (ready->sen == NULL) {
-        perror("error mallocing sen");
-        free(ready);
-        ready = NULL;
-        return;
-    }
-    ready->length = 0;
-    ready->sen->sched_one = ready->sen;
-    ready->sen->sched_two = ready->sen;
+    startup(ready);
 }
 
 
@@ -52,19 +36,7 @@ void rr_init(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    if (ready == NULL) {
-        perror("cannot shutdown uninitialized scheduler");
-        return;
-    }
-    thread cur = ready->sen->sched_one;
-    while (cur != ready->sen) {
-        thread old = cur;
-        cur = cur->sched_one;
-        free(old);
-    }
-    free(ready->sen);
-    free(ready);
-    ready = NULL;
+    shutdown(ready);
 }
 
 /*
@@ -80,18 +52,14 @@ void rr_admit(thread new) {
         perror("cannot add NULL thread");
         return;
     }
-    if (ready == NULL) {
+    if (ready->sen == NULL) {
         rr_init();
     }
-    if (ready == NULL) {  // second check after rr_init() to see if fail
+    if (ready->sen == NULL) {  // second check after rr_init() to see if fail
         perror("error initializing rr scheduler");
         return;
     }
-    new->sched_one = ready->sen;
-    new->sched_two = ready->sen->sched_two;
-    ready->sen->sched_two->sched_one = new;
-    ready->sen->sched_two = new;
-    ready->length++;
+    enqueue(ready, new);
 }
 
 /*
@@ -103,7 +71,7 @@ void rr_admit(thread new) {
  *   Nothing.
  */
 void rr_remove(thread victim) {
-    if (ready == NULL) {
+    if (ready->sen == NULL) {
         perror("cannot remove from uninitialized scheduler");
         return;
     }
@@ -111,16 +79,7 @@ void rr_remove(thread victim) {
         perror("cannot remove NULL thread");
         return;
     }
-    thread cur = ready->sen;
-    while (cur->sched_one != ready->sen && cur != victim) {
-        cur = cur->sched_one;
-    }
-    if (cur == victim) {
-        cur->sched_two->sched_one = cur->sched_one;
-        cur->sched_one->sched_two = cur->sched_two;
-        free(cur);
-        ready->length--;
-    }
+    dequeue(ready, victim);
 }
 
 /*
@@ -155,13 +114,13 @@ int rr_qlen(void) {
     return ready->length;
 }
 
-// int main(void) {
-//     thread t1 = malloc(sizeof(thread));
-//     RoundRobin->admit(t1);
-//     thread next = RoundRobin->next();
-//     int ql = RoundRobin->qlen();
-//     RoundRobin->remove(next);
-//     t1 = malloc(sizeof(thread));
-//     RoundRobin->admit(t1);
-//     RoundRobin->shutdown();
-// }
+int main(void) {
+    thread t1 = malloc(sizeof(thread));
+    sched->admit(t1);
+    thread next = sched->next();
+    int ql = sched->qlen();
+    sched->remove(next);
+    t1 = malloc(sizeof(thread));
+    sched->admit(t1);
+    sched->shutdown();
+}

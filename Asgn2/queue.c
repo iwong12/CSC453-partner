@@ -22,6 +22,7 @@ void startup(Queue *q) {
         perror("error mallocing sen");
         return;
     }
+    q->sen->tid = NO_THREAD;
     if (q == all) {
         q->sen->lib_one = q->sen;
         q->sen->lib_two = q->sen;
@@ -97,5 +98,5 @@ void dequeue(Queue *q, thread t) {
  */
 void shutdown(Queue *q) {
     free(q->sen);
-    q = NULL;
+    q->length = 0;
 }

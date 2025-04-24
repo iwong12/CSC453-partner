@@ -17,6 +17,12 @@
 
 long stacksize = -1;
 int threads = 0;
+Queue global = {NULL, 0};
+Queue dead = {NULL, 0};
+Queue wait = {NULL, 0};
+Queue *all = &global;
+Queue *zombie = &dead;
+Queue *blocked = &wait;
 
 
 /*
@@ -63,22 +69,6 @@ int set_stack_size(void) {
     return 0;
 }
 
-void switch_threads(thread old, thread new) {
-    if (old == NULL || new == NULL) {
-        perror("cannot switch NULL threads");
-        return;
-    }
-    if (old == new) {
-        perror("cannot switch to the same thread");
-        return;
-    }
-    if (old->tid < 1 || new->tid < 1) {
-        perror("cannot switch. invalid tid");
-    }
-
-    swap_rfiles(&old->state, &new->state);
-}
-
 /*
  * Description:
  *   Creates a new lightweight process which executes the given function
@@ -101,6 +91,17 @@ tid_t lwp_create(lwpfun function, void *argument) {
         }
     }
 
+    if (all->sen == NULL) {
+        startup(all);
+    }
+    if (zombie->sen == NULL) {
+        startup(zombie);
+    }
+    if (blocked->sen == NULL) {
+        startup(blocked);
+    }
+
+
     thread new = malloc(sizeof(context));
     if (new == NULL) {
         perror("error mallocing new thread");
@@ -118,8 +119,9 @@ tid_t lwp_create(lwpfun function, void *argument) {
         free(new);
         return NO_THREAD;
     }
-    unsigned long offset = (uint)((char *)new->stack + stacksize - 1) % BOUND;
-    new->stack[(stacksize - offset) / BYTES - 2] = lwp_wrap;
+    unsigned long offset = (unsigned long)((char *)new->stack
+                            + stacksize - 1) % BOUND;
+    new->stack[(stacksize - offset) / BYTES - 2] = (unsigned long)lwp_wrap;
 
     new->stacksize = stacksize;
 
@@ -130,7 +132,7 @@ tid_t lwp_create(lwpfun function, void *argument) {
 
     new->status = LWP_LIVE;
 
-    RoundRobin->admit(new);
+    sched->admit(new);
 
     return new->tid;
 }
@@ -171,7 +173,7 @@ void lwp_yield(void) {
 
 
 
-    thread later = RoundRobin->next();
+    thread later = sched->next();
 
     if (later == NULL){
 
@@ -214,7 +216,6 @@ tid_t lwp_wait(int *status) {
  *   by a LWP.
  */
 tid_t lwp_gettid(void) {
-    return queue -> sen -> sched_two -> tid;
     /* the element at back of queue is running process */
 }
 
@@ -270,9 +271,4 @@ void lwp_set_scheduler(scheduler sched) {
  */
 scheduler lwp_get_scheduler(void) {
     return NULL;
-}
-
-
-int main(void) {
-    printf("Hello World!\n");
 }

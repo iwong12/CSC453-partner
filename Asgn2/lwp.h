@@ -90,10 +90,13 @@ typedef struct Queue {
   int length;
 } Queue;
 
-extern scheduler RoundRobin;
-extern Queue *ready;
-extern Queue *zombie;
-extern Queue *waiting;
+/* queue functions */
+extern void startup(Queue *q);
+extern void shutdown(Queue *q);
+extern void enqueue(Queue *q, thread t);
+extern void dequeue(Queue *q, thread t);
+
+extern scheduler sched;
 extern Queue *all;
 
 /* for lwp_wait */
