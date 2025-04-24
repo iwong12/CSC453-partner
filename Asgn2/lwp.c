@@ -261,10 +261,9 @@ void lwp_exit(int exitval) {
  *   The tid of the terminated thread or NO_THREAD.
  */
 tid_t lwp_wait(int *status) {
-    running = sched->next()->sched_two->sched_two;
-    /* take current thread off scheduler, add to blocked queue */
 
     if (zombie -> length < 1){
+        running = sched->next()->sched_two->sched_two;
         enqueue(blocked, running, FALSE);
         sched -> remove(running);
         if (sched -> qlen() < 1){
@@ -280,6 +279,7 @@ tid_t lwp_wait(int *status) {
     tid_t final = delete -> tid;
     /* find the oldest to delete and get the id */
     dequeue(zombie, delete, FALSE);
+    dequeue(all, delete, TRUE);
 
     if (delete -> stack != NULL){
         free(delete -> stack);
