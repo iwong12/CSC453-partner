@@ -289,7 +289,29 @@ thread tid2thread(tid_t tid) {
  * Returns:
  *   Nothing.
  */
-void lwp_set_scheduler(scheduler sched) {
+void lwp_set_scheduler(scheduler new) {
+    if (new == NULL) {
+        new = malloc(sizeof(struct scheduler));
+        new->init = rr_init;
+        new->shutdown = rr_shutdown;
+        new->admit = rr_admit;
+        new->remove = rr_remove;
+        new->next = rr_next;
+        new->qlen = rr_qlen;
+    }
+    if (sched == new) {
+        perror("cannot set scheduler to itself");
+        return;
+    }
+
+    while (sched->qlen() > 0) {
+        thread cur = sched->next();
+        sched->remove(cur);
+        new->admit(cur);
+    }
+
+    sched->shutdown();
+    sched = new;
 }
 
 /*

@@ -92,7 +92,7 @@ typedef struct Queue {
 
 /* queue functions */
 extern void startup(Queue *q);
-extern void shutdown(Queue *q);
+extern void shutdown(Queue *q, int def);
 extern void enqueue(Queue *q, thread t);
 extern void dequeue(Queue *q, thread t);
 

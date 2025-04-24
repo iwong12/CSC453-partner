@@ -36,7 +36,7 @@ void rr_init(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    shutdown(ready);
+    shutdown(ready, 1);
 }
 
 /*
@@ -91,8 +91,12 @@ void rr_remove(thread victim) {
  *   The thread to run next, or NULL if there are no more threads.
  */
 thread rr_next(void) {
-    if (ready == NULL || ready->sen->sched_one == ready->sen) {
-        perror("cannot get next thread from uninitialized/empty scheduler");
+    if (ready == NULL ) {
+        rr_init();
+        return NULL;
+    }
+    if (ready->sen->sched_one == ready->sen) {
+        perror("cannot get next thread from empty scheduler");
         return NULL;
     }
     return ready->sen->sched_one;
@@ -108,19 +112,19 @@ thread rr_next(void) {
  */
 int rr_qlen(void) {
     if (ready == NULL) {
-        perror("cannot get length of uninitialized scheduler");
-        return -1;
+        rr_init();
+        return 0;
     }
     return ready->length;
 }
 
-int main(void) {
-    thread t1 = malloc(sizeof(thread));
-    sched->admit(t1);
-    thread next = sched->next();
-    int ql = sched->qlen();
-    sched->remove(next);
-    t1 = malloc(sizeof(thread));
-    sched->admit(t1);
-    sched->shutdown();
-}
+// int main(void) {
+//     thread t1 = malloc(sizeof(thread));
+//     sched->admit(t1);
+//     thread next = sched->next();
+//     int ql = sched->qlen();
+//     sched->remove(next);
+//     t1 = malloc(sizeof(thread));
+//     sched->admit(t1);
+//     sched->shutdown();
+// }
