@@ -17,7 +17,7 @@
  *   Nothing.
  */
 void startup(Queue *q, int lib) {
-    q->sen = malloc(sizeof(thread));
+    q->sen = malloc(sizeof(context));
     if (q->sen == NULL) {
         perror("error mallocing sen");
         return;

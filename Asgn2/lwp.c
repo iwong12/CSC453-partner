@@ -139,8 +139,9 @@ tid_t lwp_create(lwpfun function, void *argument) {
     new->state.rbp = (unsigned long)new->stack +
                      (stacksize - offset) / BYTES - 3;
     /* set correct spot in stack for swap_rfiles to read properly */
-    
-    new->state.fxsave = FPU_INIT;
+
+    struct fxsave test;
+    new->state.fxsave = test;
 
     new->status = LWP_LIVE;
 
