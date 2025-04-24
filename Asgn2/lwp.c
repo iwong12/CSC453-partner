@@ -169,13 +169,19 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
-    tid_t present = lwp_gettid();
-
-
-
     thread later = sched->next();
 
     if (later == NULL){
+        exit(1);
+    }
+
+    
+    
+    thread current = tid2thread(lwp_gettid());
+
+    if (current == NULL){
+        perror("could not yield current thread");
+
 
     }
 }
@@ -216,6 +222,7 @@ tid_t lwp_wait(int *status) {
  *   by a LWP.
  */
 tid_t lwp_gettid(void) {
+    return sched -> next() -> sched_two -> sched_two -> tid;
     /* the element at back of queue is running process */
 }
 
