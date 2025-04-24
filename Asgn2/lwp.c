@@ -202,9 +202,7 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
-    tid_t curt = lwp_gettid();
-    thread current = tid2thread(curt);
-    running = NULL;
+    thread current = running;
     /* find current and reset running */
 
     thread later = sched -> next();
@@ -217,6 +215,8 @@ void lwp_yield(void) {
     sched -> remove(later);
     sched -> admit(later);
     /* put it to the back of the queue */
+
+    running = later;
 
     swap_rfiles(&(current -> state), &(later -> state));
     /* change state */
@@ -233,7 +233,6 @@ void lwp_yield(void) {
  *   Nothing.
  */
 void lwp_exit(int exitval) {
-    running = sched->next()->sched_two->sched_two;
     sched->remove(running);
     /* get current thread and remove from scheduler */
     enqueue(zombie, running, FALSE);
@@ -264,7 +263,6 @@ void lwp_exit(int exitval) {
 tid_t lwp_wait(int *status) {
 
     if (zombie -> length < 1){
-        running = sched->next()->sched_two->sched_two;
         enqueue(blocked, running, FALSE);
         sched -> remove(running);
         if (sched -> qlen() < 1){
@@ -302,9 +300,6 @@ tid_t lwp_wait(int *status) {
  *   by a LWP.
  */
 tid_t lwp_gettid(void) {
-    if (running == NULL) {
-        running = sched->next()->sched_two->sched_two;
-    }
     return running->tid;
     /* the element at back of queue is running process */
 }
