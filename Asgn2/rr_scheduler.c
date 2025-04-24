@@ -11,6 +11,9 @@
 struct scheduler rr = {rr_init, rr_shutdown, rr_admit, rr_remove, rr_next, rr_qlen};
 scheduler RoundRobin = &rr;
 Queue *queue;
+Queue *zombie;
+Queue *waiting;
+Queue *all;
 
 
 /*
@@ -37,6 +40,55 @@ void rr_init(void) {
     queue->length = 0;
     queue->sen->sched_one = queue->sen;
     queue->sen->sched_two = queue->sen;
+
+    zombie = malloc(sizeof(Queue));
+    if (zombie == NULL) {
+        perror("error mallocing queue");
+        return;
+    }
+    zombie->sen = malloc(sizeof(thread));
+    if (zombie->sen == NULL) {
+        perror("error mallocing sen");
+        free(zombie);
+        zombie = NULL;
+        return;
+    }
+    zombie->length = 0;
+    zombie->sen->sched_one = zombie->sen;
+    zombie->sen->sched_two = zombie->sen;
+
+    waiting = malloc(sizeof(Queue));
+    if (waiting == NULL) {
+        perror("error mallocing queue");
+        return;
+    }
+    waiting->sen = malloc(sizeof(thread));
+    if (waiting->sen == NULL) {
+        perror("error mallocing sen");
+        free(waiting);
+        waiting = NULL;
+        return;
+    }
+    waiting->length = 0;
+    waiting->sen->sched_one = waiting->sen;
+    waiting->sen->sched_two = waiting->sen;
+
+    all = malloc(sizeof(Queue));
+    if (all == NULL) {
+        perror("error mallocing queue");
+        return;
+    }
+    all->sen = malloc(sizeof(thread));
+    if (all->sen == NULL) {
+        perror("error mallocing sen");
+        free(all);
+        all = NULL;
+        return;
+    }
+    all->length = 0;
+    all->sen->lib_one = all->sen;
+    all->sen->lib_two = all->sen;
+    /* this creates a new all thread queue */
 }
 
 
@@ -62,6 +114,50 @@ void rr_shutdown(void) {
     free(queue->sen);
     free(queue);
     queue = NULL;
+
+    if (zombie == NULL) {
+        perror("cannot shutdown uninitialized scheduler");
+        return;
+    }
+    cur = zombie->sen->sched_one;
+    while (cur != zombie->sen) {
+        thread old = cur;
+        cur = cur->sched_one;
+        free(old);
+    }
+    free(zombie->sen);
+    free(zombie);
+    zombie = NULL;
+
+    if (waiting == NULL) {
+        perror("cannot shutdown uninitialized scheduler");
+        return;
+    }
+    cur = waiting->sen->sched_one;
+    while (cur != waiting->sen) {
+        thread old = cur;
+        cur = cur->sched_one;
+        free(old);
+    }
+    free(waiting->sen);
+    free(waiting);
+    waiting = NULL;
+
+    
+    if (all == NULL) {
+        perror("cannot shutdown uninitialized scheduler");
+        return;
+    }
+    cur = all->sen->lib_one;
+    while (cur != all->sen) {
+        thread old = cur;
+        cur = cur->lib_one;
+        free(old);
+    }
+    free(all->sen);
+    free(all);
+    all = NULL;
+
 }
 
 /*
@@ -84,11 +180,21 @@ void rr_admit(thread new) {
         perror("error initializing rr scheduler");
         return;
     }
+    if (all == NULL) {  // second check after rr_init() to see if fail
+        perror("error initializing rr scheduler");
+        return;
+    }
     new->sched_one = queue->sen;
     new->sched_two = queue->sen->sched_two;
     queue->sen->sched_two->sched_one = new;
     queue->sen->sched_two = new;
     queue->length++;
+
+    new->lib_one = all->sen;
+    new->lib_two = all->sen->lib_two;
+    all->sen->lib_two->lib_one = new;
+    all->sen->lib_two = new;
+    all->length++;
 }
 
 /*
@@ -101,6 +207,10 @@ void rr_admit(thread new) {
  */
 void rr_remove(thread victim) {
     if (queue == NULL) {
+        perror("cannot remove from uninitialized scheduler");
+        return;
+    }
+    if (all == NULL) {
         perror("cannot remove from uninitialized scheduler");
         return;
     }
@@ -118,6 +228,18 @@ void rr_remove(thread victim) {
         free(cur);
         queue->length--;
     }
+
+    cur = all->sen;
+    while (cur->lib_one != all->sen && cur != victim) {
+        cur = cur->lib_one;
+    }
+    if (cur == victim) {
+        cur->lib_two->lib_one = cur->lib_one;
+        cur->lib_one->lib_two = cur->lib_two;
+        free(cur);
+        all->length--;
+    }
+
 }
 
 /*
