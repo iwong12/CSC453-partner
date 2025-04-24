@@ -213,6 +213,11 @@ void lwp_yield(void) {
  *   Nothing.
  */
 void lwp_exit(int exitval) {
+    running = sched->next()->sched_two->sched_two;
+    sched->remove(running);
+    enqueue(zombie, running);
+    running->status = MKTERMSTAT(LWP_TERM, exitval);
+    lwp_yield();
 }
 
 /*
@@ -238,7 +243,10 @@ tid_t lwp_wait(int *status) {
  *   by a LWP.
  */
 tid_t lwp_gettid(void) {
-    return sched -> next() -> sched_two -> sched_two -> tid;
+    if (running == NULL) {
+        running = sched->next()->sched_two->sched_two;
+    }
+    return running->tid;
     /* the element at back of queue is running process */
 }
 
@@ -293,5 +301,5 @@ void lwp_set_scheduler(scheduler sched) {
  *   A pointer to the current scheduler.
  */
 scheduler lwp_get_scheduler(void) {
-    return NULL;
+    return sched;
 }
