@@ -108,8 +108,8 @@ thread rr_next(void) {
         rr_init();
         return NULL;
     }
-    if (ready->sen->sched_one == ready->sen) {
-        perror("cannot get next thread from empty scheduler");
+    if (rr_qlen() < 2) {
+        perror("no next thread");
         return NULL;
     }
     return ready->sen->sched_one;

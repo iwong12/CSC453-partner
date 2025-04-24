@@ -202,7 +202,8 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
-    thread current = tid2thread(lwp_gettid());
+    tid_t curt = lwp_gettid();
+    thread current = tid2thread(curt);
     running = NULL;
     /* find current and reset running */
 
@@ -325,11 +326,11 @@ thread tid2thread(tid_t tid) {
         if (current == (all -> sen)){
             current = NULL;
             test = TRUE;
+            current = current -> lib_one;
         }
         else if ((current -> tid) == tid){
             test = TRUE;
         }
-        current = current -> lib_one;
     }
     /* iterates through all till is done or finds */
 
