@@ -264,8 +264,8 @@ void lwp_exit(int exitval) {
 tid_t lwp_wait(int *status) {
 
     if (zombie -> length < 1){
-        enqueue(blocked, running, FALSE);
         sched -> remove(running);
+        enqueue(blocked, running, FALSE);
         if (sched -> qlen() < 1){
             return NO_THREAD;
         }
@@ -383,25 +383,4 @@ void lwp_set_scheduler(scheduler new) {
  */
 scheduler lwp_get_scheduler(void) {
     return sched;
-}
-
-int test1(void *arg) {
-    printf("%d: hello!\n", *(int *)arg);
-    lwp_yield();
-    lwp_exit(0);
-    return 0;
-}
-
-int main(void) {
-    int i, num[5] = {0, 1, 2, 3, 4};
-    for (i = 0; i < 5; i++) {
-        lwp_create(test1, num + i);
-    }
-    lwp_start();
-    for (i = 0; i < 5; i++) {
-        int status;
-        lwp_wait(&status);
-        printf("%d\n", status);
-    }
-    return 0;
 }
