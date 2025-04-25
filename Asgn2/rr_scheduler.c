@@ -32,10 +32,12 @@ void rr_init(void) {
     sched->remove = rr_remove;
     sched->next = rr_next;
     sched->qlen = rr_qlen;
-    ready = startup(FALSE);
     if (ready == NULL) {
-        perror("error initializing queues");
-        free(sched);
+        ready = startup(FALSE);
+        if (ready == NULL) {
+            perror("error initializing queues");
+            free(sched);
+        }
     }
 }
 
@@ -48,7 +50,9 @@ void rr_init(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    shutdown(ready);
+    if (ready != NULL && ready->length == 0) {
+        shutdown(ready);
+    }
 }
 
 /*
