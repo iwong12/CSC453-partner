@@ -418,7 +418,6 @@ void lwp_set_scheduler(scheduler new) {
         return;
     }
 
-    new->init();
 
     Queue *temp = startup(FALSE);
     if (temp == NULL) {
