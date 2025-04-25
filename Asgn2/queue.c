@@ -17,7 +17,7 @@
  *   Nothing.
  */
 Queue *startup(int lib) {
-    Queue *q = (Queue *)malloc(sizeof(Queue));
+    Queue *q = malloc(sizeof(Queue));
     if (q == NULL) {
         perror("allocating global queue");
         return NULL;

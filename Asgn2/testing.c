@@ -17,11 +17,12 @@ int main(void) {
     for (i = 0; i < 10; i++) {
         lwp_create(test1, num + i);
     }
-    lwp_start();
-    for (i = 0; i < 10; i++) {
-        int status;
-        lwp_wait(&status);
-        printf("%d: %d\n", i, status);
-    }
-    return 0;
+    // lwp_start();
+    // for (i = 0; i < 10; i++) {
+    //     int status;
+    //     lwp_wait(&status);
+    //     printf("%d: %d\n", i, status);
+    // }
+    // return 0;
+    lwp_set_scheduler(NULL);
 }
