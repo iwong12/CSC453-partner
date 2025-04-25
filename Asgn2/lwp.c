@@ -416,9 +416,20 @@ void lwp_set_scheduler(scheduler new) {
         return;
     }
 
+    Queue *temp = startup(FALSE);
+    if (temp == NULL) {
+        perror("cannot allocate temp context");
+        return;
+    }
+
     while (sched->qlen() > 0) {
         thread cur = sched->next();
         sched->remove(cur);
+        enqueue(temp, cur, FALSE);
+    }
+    while (temp->length > 0) {
+        thread cur = temp->sen->sched_one;
+        dequeue(temp, cur, FALSE);
         new->admit(cur);
     }
 
