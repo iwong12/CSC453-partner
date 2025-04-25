@@ -414,7 +414,6 @@ void lwp_set_scheduler(scheduler new) {
         new->qlen = rr_qlen;
     }
     if (sched == new) {
-        perror("cannot set scheduler to itself");
         return;
     }
 
