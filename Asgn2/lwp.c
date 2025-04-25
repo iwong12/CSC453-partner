@@ -18,12 +18,9 @@
 long stacksize = -1;
 unsigned long threads = 0;
 thread running = NULL;
-Queue global = {NULL, 0};
-Queue dead = {NULL, 0};
-Queue wait = {NULL, 0};
-Queue *all = &global;
-Queue *zombie = &dead;
-Queue *blocked = &wait;
+Queue *all = NULL;
+Queue *zombie = NULL;
+Queue *blocked = NULL;
 
 
 /*
@@ -50,21 +47,21 @@ static void lwp_wrap(lwpfun fun, void *arg) {
  *   0 on success, -1 on error.
  */
 int check_init(void) {
-    if (all->sen == NULL) {
+    if (all == NULL) {
         all = startup(TRUE);
         if (all == NULL) {
             perror("initializing all");
             return -1;
         }
     }
-    if (zombie->sen == NULL) {
+    if (zombie == NULL) {
         zombie = startup(FALSE);
         if (zombie == NULL) {
             perror("initializing zombie");
             return -1;
         }
     }
-    if (blocked->sen == NULL) {
+    if (blocked == NULL) {
         blocked = startup(FALSE);
         if (blocked == NULL) {
             perror("initializing blocked");
@@ -406,6 +403,10 @@ void lwp_set_scheduler(scheduler new) {
 
     if (new == NULL) {
         new = malloc(sizeof(struct scheduler));
+        if (new == NULL) {
+            perror("error allocating scheduler");
+            return;
+        }
         new->init = rr_init;
         new->shutdown = rr_shutdown;
         new->admit = rr_admit;
