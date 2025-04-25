@@ -404,22 +404,28 @@ void lwp_set_scheduler(scheduler new) {
     if (sched == new) {
         return;
     }
-    if (new == NULL) {
-        new = malloc(sizeof(struct scheduler));
-        if (new == NULL) {
-            perror("error allocating scheduler");
-            return;
-        }
-        new->init = rr_init;
-        new->shutdown = rr_shutdown;
-        new->admit = rr_admit;
-        new->remove = rr_remove;
-        new->next = rr_next;
-        new->qlen = rr_qlen;
+    scheduler mid = malloc(sizeof(struct scheduler));
+    if (mid == NULL) {
+        perror("error allocating scheduler");
+        return;
     }
-
-    if (new->init != NULL) {
-        new->init();
+    if (new == NULL) {
+        mid->init = rr_init;
+        mid->shutdown = rr_shutdown;
+        mid->admit = rr_admit;
+        mid->remove = rr_remove;
+        mid->next = rr_next;
+        mid->qlen = rr_qlen;
+    } else {
+        mid->init = new->init;
+        mid->shutdown = new->shutdown;
+        mid->admit = new->admit;
+        mid->remove = new->remove;
+        mid->next = new->next;
+        mid->qlen = new->qlen;
+    }
+    if (mid->init != NULL) {
+        mid->init();
     }
 
     Queue *temp = startup(FALSE);
@@ -436,14 +442,14 @@ void lwp_set_scheduler(scheduler new) {
     while (temp->length > 0) {
         thread cur = temp->sen->sched_one;
         dequeue(temp, cur, FALSE);
-        new->admit(cur);
+        mid->admit(cur);
     }
 
     if (sched->shutdown != NULL) {
         sched->shutdown();
     }
     free(sched);
-    sched = new;
+    sched = mid;
 }
 
 /*
