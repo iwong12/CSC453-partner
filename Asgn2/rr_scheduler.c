@@ -8,9 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct scheduler rr = {rr_init, _rr_shutdown, rr_admit,
-                       rr_remove, rr_next, rr_qlen};
-scheduler sched = &rr;
+scheduler sched = NULL;
 Queue ready_help = {NULL, 0};
 Queue *ready = &ready_help;
 
@@ -24,20 +22,21 @@ Queue *ready = &ready_help;
  *   Nothing.
  */
 void rr_init(void) {
-    startup(ready, 0);
-}
-
-
-/*
- * Description:
- *   Shuts down the global round-robin scheduler.
- * Parameters:
- *   None.
- * Returns:
- *   Nothing.
- */
-void _rr_shutdown(void) {
-    shutdown(ready, TRUE);
+    sched = malloc(sizeof(struct scheduler));
+    if (sched == NULL) {
+        perror("error allocating scheduler");
+        return;
+    }
+    sched->init = rr_init;
+    sched->shutdown = rr_shutdown;
+    sched->admit = rr_admit;
+    sched->remove = rr_remove;
+    sched->next = rr_next;
+    sched->qlen = rr_qlen;
+    if (startup(ready, 0) == -1) {
+        perror("error initializing queues");
+        free(sched);
+    }
 }
 
 /*
@@ -49,7 +48,7 @@ void _rr_shutdown(void) {
  *   Nothing.
  */
 void rr_shutdown(void) {
-    shutdown(ready, FALSE);
+    shutdown(ready);
 }
 
 /*
@@ -65,10 +64,10 @@ void rr_admit(thread new) {
         perror("cannot add NULL thread");
         return;
     }
-    if (ready->sen == NULL) {
+    if (sched == NULL) {
         rr_init();
     }
-    if (ready->sen == NULL) {  // second check after rr_init() to see if fail
+    if (sched == NULL) {  // second check after rr_init() to see if fail
         perror("error initializing rr scheduler");
         return;
     }
@@ -84,8 +83,11 @@ void rr_admit(thread new) {
  *   Nothing.
  */
 void rr_remove(thread victim) {
-    if (ready->sen == NULL) {
-        perror("cannot remove from uninitialized scheduler");
+    if (sched == NULL) {
+        rr_init();
+    }
+    if (sched == NULL) {  // second check after rr_init() to see if fail
+        perror("error initializing rr scheduler");
         return;
     }
     if (victim == NULL) {
@@ -104,7 +106,7 @@ void rr_remove(thread victim) {
  *   The thread to run next, or NULL if there are no more threads.
  */
 thread rr_next(void) {
-    if (ready == NULL ) {
+    if (sched == NULL) {
         rr_init();
         return NULL;
     }
@@ -123,7 +125,7 @@ thread rr_next(void) {
  *   The number of runnable threads.
  */
 int rr_qlen(void) {
-    if (ready == NULL) {
+    if (sched == NULL) {
         rr_init();
         return 0;
     }

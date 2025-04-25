@@ -16,11 +16,11 @@
  * Returns:
  *   Nothing.
  */
-void startup(Queue *q, int lib) {
+int startup(Queue *q, int lib) {
     q->sen = malloc(sizeof(context));
     if (q->sen == NULL) {
         perror("error mallocing sen");
-        return;
+        return -1;
     }
     q->sen->tid = NO_THREAD;
     if (lib == TRUE) {
@@ -32,6 +32,7 @@ void startup(Queue *q, int lib) {
         q->sen->sched_two = q->sen;
         q->length = 0;
     }
+    return 0;
 }
 
 /*
@@ -74,6 +75,8 @@ void dequeue(Queue *q, thread t, int lib) {
         if (cur == t) {
             cur->lib_two->lib_one = cur->lib_one;
             cur->lib_one->lib_two = cur->lib_two;
+            cur->lib_one = NULL;
+            cur->lib_two = NULL;
             q->length--;
         }
     } else {
@@ -83,6 +86,8 @@ void dequeue(Queue *q, thread t, int lib) {
         if (cur == t) {
             cur->sched_two->sched_one = cur->sched_one;
             cur->sched_one->sched_two = cur->sched_two;
+            cur->sched_one = NULL;
+            cur->sched_two = NULL;
             q->length--;
         }
     }
@@ -96,11 +101,7 @@ void dequeue(Queue *q, thread t, int lib) {
  * Returns:
  *   Nothing.
  */
-void shutdown(Queue *q, int def) {
+void shutdown(Queue *q) {
     free(q->sen);
-    if (def == TRUE) {
-        q->length = 0;
-    } else {
         free(q);
-    }
 }

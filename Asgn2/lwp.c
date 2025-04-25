@@ -16,7 +16,7 @@
 #include <sys/mman.h>
 
 long stacksize = -1;
-int threads = 0;
+unsigned long threads = 0;
 thread running = NULL;
 Queue global = {NULL, 0};
 Queue dead = {NULL, 0};
@@ -38,6 +38,45 @@ Queue *blocked = &wait;
 static void lwp_wrap(lwpfun fun, void *arg) {
     int rval = fun(arg);
     lwp_exit(rval);
+}
+
+/*
+ * Description:
+ *   Checks to make sure resources exist and
+ *   initializes if the don't.
+ * Paramters:
+ *   Nothing.
+ * Returns:
+ *   0 on success, -1 on error.
+ */
+int check_init(void) {
+    if (all->sen == NULL) {
+        if (startup(all, TRUE) == -1) {
+            perror("initializing all");
+            return -1;
+        }
+    }
+    if (zombie->sen == NULL) {
+        if (startup(zombie, FALSE) == -1) {
+            perror("initializing all");
+            return -1;
+        }
+    }
+    if (blocked->sen == NULL) {
+        if (startup(blocked, FALSE) == -1) {
+            perror("initializing all");
+            return -1;
+        }
+    }
+
+    if (sched == NULL) {
+        rr_init();
+    }
+    if (sched == NULL) {  // second check after rr_init() to see if fail
+        perror("error initializing rr scheduler");
+        return -1;
+    }
+    return 0;
 }
 
 /*
@@ -81,6 +120,11 @@ int set_stack_size(void) {
  *   or NO THREAD if the thread cannot be created.
  */
 tid_t lwp_create(lwpfun function, void *argument) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return NO_THREAD;
+    }
+
     if  (function == NULL) {
         perror("cannot create thread with NULL function");
         return NO_THREAD;
@@ -92,18 +136,6 @@ tid_t lwp_create(lwpfun function, void *argument) {
         }
     }
     /* check params */
-
-    if (all->sen == NULL) {
-        startup(all, TRUE);
-    }
-    if (zombie->sen == NULL) {
-        startup(zombie, FALSE);
-    }
-    if (blocked->sen == NULL) {
-        startup(blocked, FALSE);
-    }
-    /* create queues if existing */
-
 
     thread new = malloc(sizeof(context));
     if (new == NULL) {
@@ -162,16 +194,10 @@ tid_t lwp_create(lwpfun function, void *argument) {
  *   Nothing.
  */
 void lwp_start(void) {
-    if (all->sen == NULL) {
-        startup(all, TRUE);
+    if (check_init() == -1) {
+        perror("initialization error");
+        return;
     }
-    if (zombie->sen == NULL) {
-        startup(zombie, FALSE);
-    }
-    if (blocked->sen == NULL) {
-        startup(blocked, FALSE);
-    }
-    /* these create new queues for all, zombies, and blocked */
 
     thread new = malloc(sizeof(context));
     if (new == NULL) {
@@ -203,6 +229,11 @@ void lwp_start(void) {
  *   Nothing.
  */
 void lwp_yield(void) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return;
+    }
+
     thread current = running;
     /* find current and reset running */
 
@@ -234,6 +265,11 @@ void lwp_yield(void) {
  *   Nothing.
  */
 void lwp_exit(int exitval) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return;
+    }
+
     sched->remove(running);
     /* get current thread and remove from scheduler */
     enqueue(zombie, running, FALSE);
@@ -262,6 +298,10 @@ void lwp_exit(int exitval) {
  *   The tid of the terminated thread or NO_THREAD.
  */
 tid_t lwp_wait(int *status) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return NO_THREAD;
+    }
 
     if (zombie -> length < 1){
         sched -> remove(running);
@@ -318,6 +358,11 @@ tid_t lwp_gettid(void) {
  *   if the ID is invalid.
  */
 thread tid2thread(tid_t tid) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return NULL;
+    }
+
     int test = FALSE;
 
     thread current = all -> sen -> lib_one;
@@ -349,6 +394,11 @@ thread tid2thread(tid_t tid) {
  *   Nothing.
  */
 void lwp_set_scheduler(scheduler new) {
+    if (check_init() == -1) {
+        perror("initialization error");
+        return;
+    }
+
     if (new == NULL) {
         new = malloc(sizeof(struct scheduler));
         new->init = rr_init;
