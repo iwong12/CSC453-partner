@@ -60,14 +60,14 @@ int check_init(void) {
     if (zombie->sen == NULL) {
         zombie = startup(FALSE);
         if (zombie == NULL) {
-            perror("initializing all");
+            perror("initializing zombie");
             return -1;
         }
     }
     if (blocked->sen == NULL) {
         blocked = startup(FALSE);
         if (blocked == NULL) {
-            perror("initializing all");
+            perror("initializing blocked");
             return -1;
         }
     }
@@ -415,6 +415,8 @@ void lwp_set_scheduler(scheduler new) {
         perror("cannot set scheduler to itself");
         return;
     }
+
+    new->init();
 
     Queue *temp = startup(FALSE);
     if (temp == NULL) {
