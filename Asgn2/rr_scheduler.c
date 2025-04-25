@@ -9,8 +9,7 @@
 #include <stdlib.h>
 
 scheduler sched = NULL;
-Queue ready_help = {NULL, 0};
-Queue *ready = &ready_help;
+Queue *ready = NULL;
 
 
 /*
@@ -33,7 +32,8 @@ void rr_init(void) {
     sched->remove = rr_remove;
     sched->next = rr_next;
     sched->qlen = rr_qlen;
-    if (startup(ready, 0) == -1) {
+    ready = startup(FALSE);
+    if (ready == NULL) {
         perror("error initializing queues");
         free(sched);
     }

@@ -51,19 +51,22 @@ static void lwp_wrap(lwpfun fun, void *arg) {
  */
 int check_init(void) {
     if (all->sen == NULL) {
-        if (startup(all, TRUE) == -1) {
+        all = startup(TRUE);
+        if (all == NULL) {
             perror("initializing all");
             return -1;
         }
     }
     if (zombie->sen == NULL) {
-        if (startup(zombie, FALSE) == -1) {
+        zombie = startup(FALSE);
+        if (zombie == NULL) {
             perror("initializing all");
             return -1;
         }
     }
     if (blocked->sen == NULL) {
-        if (startup(blocked, FALSE) == -1) {
+        blocked = startup(FALSE);
+        if (blocked == NULL) {
             perror("initializing all");
             return -1;
         }

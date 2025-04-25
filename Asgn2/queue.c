@@ -16,11 +16,17 @@
  * Returns:
  *   Nothing.
  */
-int startup(Queue *q, int lib) {
+Queue *startup(int lib) {
+    Queue *q = (Queue *)malloc(sizeof(Queue));
+    if (q == NULL) {
+        perror("allocating global queue");
+        return NULL;
+    }
     q->sen = malloc(sizeof(context));
     if (q->sen == NULL) {
         perror("error mallocing sen");
-        return -1;
+        free(q);
+        return NULL;
     }
     q->sen->tid = NO_THREAD;
     if (lib == TRUE) {
@@ -32,7 +38,7 @@ int startup(Queue *q, int lib) {
         q->sen->sched_two = q->sen;
         q->length = 0;
     }
-    return 0;
+    return q;
 }
 
 /*
