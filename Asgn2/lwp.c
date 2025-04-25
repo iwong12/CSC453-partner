@@ -318,7 +318,9 @@ tid_t lwp_wait(int *status) {
     /* wait for zombie to show up */
 
     thread delete = zombie -> sen -> sched_one;
-    *status = delete -> status;
+    if (status != NULL){
+        *status = delete -> status;
+    }
     tid_t final = delete -> tid;
     /* find the oldest to delete and get the id */
     dequeue(zombie, delete, FALSE);
