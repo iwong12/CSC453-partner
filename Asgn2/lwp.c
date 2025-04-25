@@ -436,6 +436,7 @@ void lwp_set_scheduler(scheduler new) {
     }
 
     sched->shutdown();
+    free(sched);
     sched = new;
 }
 
