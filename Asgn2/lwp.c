@@ -401,6 +401,9 @@ void lwp_set_scheduler(scheduler new) {
         return;
     }
 
+    if (sched == new) {
+        return;
+    }
     if (new == NULL) {
         new = malloc(sizeof(struct scheduler));
         if (new == NULL) {
@@ -414,8 +417,9 @@ void lwp_set_scheduler(scheduler new) {
         new->next = rr_next;
         new->qlen = rr_qlen;
     }
-    if (sched == new) {
-        return;
+
+    if (new->init != NULL) {
+        new->init();
     }
 
     Queue *temp = startup(FALSE);
@@ -435,7 +439,9 @@ void lwp_set_scheduler(scheduler new) {
         new->admit(cur);
     }
 
-    sched->shutdown();
+    if (sched->shutdown != NULL) {
+        sched->shutdown();
+    }
     free(sched);
     sched = new;
 }

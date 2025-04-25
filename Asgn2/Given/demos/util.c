@@ -27,8 +27,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include "snakes.h"
-#include "lwp.h"
+#include "../include/snakes.h"
+#include "../../lwp.h"
 #include "util.h"
 
 

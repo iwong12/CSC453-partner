@@ -14,7 +14,7 @@ extern int ChangeOnSIGTSTP();
 extern int ChooseLowestColor();
 extern int ChooseHighestColor();
 #else
-#include "schedulers.h"
+#include "../../schedulers.h"
 #endif
 
 #endif

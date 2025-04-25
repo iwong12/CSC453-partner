@@ -46,9 +46,9 @@
 #include <ncurses.h>
 #include <signal.h>
 #include <sys/time.h>
-#include "snakes.h"
-#include "lwp.h"
-#include "util.h"
+#include "../../snakes.h"
+#include "../../lwp.h"
+#include "../../util.h"
 
 #define MAXSNAKES  100
 
